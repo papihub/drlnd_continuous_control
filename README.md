@@ -15,7 +15,7 @@ I developed code in this repository on a windows 10 64bit OS. So, I havent teste
 **Unity Environment**: Download the unity environment from [here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher_Windows_x86_64.zip). This is for windows 10 64bit OS. Please refer to the course material if you want the environment for a different OS.
 
 ## Environment
-In this environment the observation/state space has 33 dimensions corresponding to position, rotation, velocity, and angular velocities of the arm. Each action is a vector with four numbers, corresponding to torque applicable to two joints. Every entry in the action vector should be a number between -1 and 1. The action space in continuous.
+In this environment the observation/state space has 33 dimensions corresponding to position, rotation, velocity, and angular velocities of the arms. Each action is a vector with four numbers, corresponding to torque applicable to two joints. Every entry in the action vector should be a number between -1 and 1. The action space in continuous.
 
 The course provides two versions of this environment. Version 1 is for a single agent and version 2 has 20 identical agents each with its own copy of the environment. I chose to use version 2 with 20 agents.
 
@@ -24,7 +24,7 @@ The task is episodic. This means there is a distinct "done" state. In order to s
 ## Success criteria:
 Our agent must get an average of +30 reward over 100 consecutive episodes.
 After each episode, we get the mean reward (average of rewards from all 20 agents).
-We need to an the avearage of this mean reward to be > +30 over 100 consecutive episodes.
+We need avearage of this mean reward to be > +30 over 100 consecutive episodes.
 
 ## Instructions to train the agent:
 Install the dependencies above.
@@ -33,12 +33,16 @@ open a jupyter notebook.
 
 Run the notebook continuous_control.ipynb to train and test the agent. The notebook has instructions to load a saved model and to save a trained model.
 
-** It took me about 7 hrs to run this noteboook in CPU **
+** The training step in this notebook took 7 hours on a CPU. I did not test the code on a GPU. **
 
 ## Approach : Reinforced Learning with the Deep Deterministic Policy Gradient (DDPG) approach
-This is agent trains using DDPG algorithm (link to llicrap) using four deep neural networks. 
+This agent trains using DDPG algorithm (link to llicrap) using four deep neural networks. Two of them correspond to an "Actor" and two to a "Critic". 
 
-**** update the below ****
+Actor takes current state as input and provides action as an output. There is a target actor network thats only used during training the actor. The target actor network is a time delayed copy of the actor network. Since we dont have a complete view of our environment, we use our actors current understanding of the environment as a target. Since our actor's understanding of the environment changes with every step, our target is non stationary. Neural networks learn better in a stable environment. So we try to keep the target for the actor relatively stable by making it a timedelayed copy of the actor.
+
+Critic takes the action from the actor along with the current state as inputs. It provides a single value as an output. Critic's output is an evaluation of the actor's output. It helps the actor decide which direction to move while learning. Critic also uses a critic-target network while training. Simiar to actor-target, critic-target is a time delayed copy of critic and helps stablize critic's learning.
+
+The agent maintains two replay buffers, a positive reward buffer and a negative reward buffer to store previously seen states, actions taken in those states, resulting rewards, next states returned by environment and whether its a done state or not. I noticed that having two buffers allowed the agent to learn faster. Since positive experiences are rare in the initial learning stages, I think maintaining two separate buffers and sampling evenly from them helped the agent learn better.
 
 Initially the neural networks are initialized with random weights.
 
@@ -48,19 +52,21 @@ When the agent takes an action in a current state, the environment returns the n
 
 When the agent reaches the terminal state, the eposide terminates.
 
-The agent maintains a tuple of ( state, action, reward, next state, done ) for all steps in an episode in a replay buffer.
+The agent maintains a tuple of ( state, action, reward, next state, done ) for all steps in an episode in two replay buffers. tuples with positive reward in a positive-replay buffer and tuples with negative rewards in a negative-replay buffer
 
-The agent maintains as many episodes as its replay buffer can fit. In this case the replay buffer is set to 1e5 bytes.
+The agent maintains as many episodes as its replay buffers can fit. In this case the replay buffers are set to hold 10,000 tuples.
 
-The agent samples episodes from the replay buffer and trains its neural networks models.
+The agent samples episodes from the positive and negative replay buffers evenly and trains its neural networks models.
 
-The agent does not learn after every step. Instead it learns once every 4 steps ( hyper parameter )
+The agent does not learn after every step. Instead it learns once every 100 steps ( hyper parameter )
 
-The agent uses its deep neural netowrk to come up with a greedy action given the current state. It uses an epsilon greedy method to either pick a random state ( to explore ) or a greedy action ( to exploit ).
+The agent uses its 'actor' deep neural netowrks to come up with an action given the current state. It uses a 'critic' DNN to evaluate the actor's output.
 
-epsilon is initially set to a high value of 1 to encourage exploration during the initial steps. Then its gradually reduced till it reaches 0.01 and maintains at 0.01. This is to allow the agent to be greedy over time as it has learned from the environment.
 
-For stability of the neural networks, the agent maintains a target network and a local network. The local network is used to take actions and is refeined in each learning step. The target network is only updated after a fixed number of learning steps.
+**** update the below ****
+
+
+For stability of the neural networks, the agent maintains a target network and a local network for both actor and critic networks. Actor local network is used to take action and is refeined in each learning step. The target network is only updated after a fixed number of learning steps.
 
 In each learning step, the agent computes the difference between expected and predicted value and uses a learning rate along with a discount factor. It uses this difference (loss) to train the deep network.
 
