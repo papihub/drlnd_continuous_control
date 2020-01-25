@@ -66,53 +66,57 @@ The agent uses its 'actor' deep neural netowrks to come up with an action given 
 **** update the below ****
 
 
-For stability of the neural networks, the agent maintains a target network and a local network for both actor and critic networks. Actor local network is used to take action and is refeined in each learning step. The target network is only updated after a fixed number of learning steps.
+For stability of the neural networks, the agent maintains a target network and a local network for both actor and critic networks. Actor local network is used to take action and is refeined in each learning step. The target network is only updated after a fixed number of learning steps. Target networks are not trained. They meerly get a scaled copy of the local networks.
 
-In each learning step, the agent computes the difference between expected and predicted value and uses a learning rate along with a discount factor. It uses this difference (loss) to train the deep network.
+In each learning step, the agents computes the difference between expected and predicted values and use a learning rate along with a discount factor to learn from the difference(loss) between expected and predicted values.
 
 ### Network Architecture
-The agent uses 2 identical deep neural networks to learn from the environment interactions.
+The agent uses 2 different deep neural networks to learn from the environment interactions.
 
-The networks have 1 input layer, 1 hidden layer and 1 output layer.
-
+Actor network:
+1 input layer and 1 output layer.
 All layers are fully connected.
+Input layers has (state_size) inputs and (state_size)x(action_size) outputs
+Output layer has (state_size)x(action_size) inputs and (action_size) outputs
 
-Input layers has (state_size) inputs and (state_size)x10 outputs
+State_size = 33 and action_size = 4 for this environment.
 
-Hidden layer has (state_size)x10 inputs and (state_size)x5 outputs
-
-output layer has (state_size)x5 inputs and (action_size) outputs
-
-State_size = 37 and action_size = 4 for this environment.
-
-Input and hidden layers go thru an relu activation function.
+Input layer goes thru an leaky relu activation function.
+Output layer goes thru a tanh activation function to ensure all output values are between -1 and 1
 
 We use a mean squared loss function to compute the loss values.
 
 We use Adam optimizer to backpropogate the loss and update weights.
 
+Critic network:
+4 layers all fully connected.
+layer 1 takes state as input
+layer 2 takes action as input
+layer 3 takes the output from layer 1 & 2 concatenated
+layer 4 is the output layer 
+
+All these layers are fully connected.
+layer 1 goes thru a leaky relu
+layer 2 goes thru a tanh
+layer 3 & 4 go thru a leaky relu
+
+The critic also uses a mean squared loss function and an Adam optimizer to backpropogate the loss and udpate weights.
+
+
 ### Hyper parameters and their values
 |Hyper parameter|Value|Comment|
 |---------------|:---:|-------|
-|Replay buffer size|1e5|BUFFER_SIZE|
+|Replay buffer size|10,000x2|BUFFER_SIZE. I used 2 buffers - one for positive rewards and another for zero rewards|
 |Discount Factor|0.99|GAMMA|
-|How often do we learn?|4|UPDATE_EVERY|
-|Minimum steps before we start learning|64|BATCH_SIZE|
+|How often do we learn?|100|UPDATE_EVERY|
+|No of experiences we use for learning|100|sample size|
 |Factor for target network update|1e-3|TAU|
-|Learning Rate|5e-4|ALPHA/LR|
-|Initial epsilon|1.0|for exploration|
-|Min epsilon|0.01||
-|epsilon decay|0.995||
-|*below are other parameters used in training the agent*|
-|Max episodes|2000||
-|Max steps in an episode|1000||
-|window size to compute average score|100||
+|Learning Rate|1e-4|ALPHA/LR. Use the same learning rate for actor and critic. I used 1e-2 and the agent dint learn at all.|
+|No of epochs during each training step|3| We sample 3 times from the buffers and learn from each of those sample sets|
 
 ## Future actions / steps
-In this implementation I sampled randomly from the replay buffer for training.
+In this implementation I sampled randomly from two replay buffer for training.
 
-Implementing priority queues can allow some of the agent to learn from important steps more times than other steps.
+I want to try some of the other training methods like Proximal policy optimizing, TD3 and TRPO
 
-Implement dual networks where we switch the target and local networks.
-
-Learn directly from raw images than from encoded states!!
+May be create a real robotic arm and then use this agent to control it!! :)
