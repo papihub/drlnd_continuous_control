@@ -33,7 +33,7 @@ open a jupyter notebook.
 
 Run the notebook continuous_control.ipynb to train and test the agent. The notebook has instructions to load a saved model and to save a trained model.
 
-** The training step in this notebook took 7 hours on a CPU. I did not test the code on a GPU. **
+**The training step in this notebook took 7 hours on a CPU. I did not test the code on a GPU.**
 
 ## Approach : Reinforced Learning with the Deep Deterministic Policy Gradient (DDPG) approach
 This agent trains using DDPG algorithm (link to llicrap) using four deep neural networks. Two of them correspond to an "Actor" and two to a "Critic". 
@@ -110,7 +110,7 @@ The critic also uses a mean squared loss function and an Adam optimizer to backp
 |Discount Factor|0.99|GAMMA|
 |How often do we learn?|100|UPDATE_EVERY|
 |No of experiences we use for learning|100|sample size|
-|Factor for target network update|1e-3|TAU|
+|Factor for target network update|1e-3|TAU. Same TAU for both actor and critic|
 |Learning Rate|1e-4|ALPHA/LR. Use the same learning rate for actor and critic. I used 1e-2 and the agent dint learn at all.|
 |No of epochs during each training step|3| We sample 3 times from the buffers and learn from each of those sample sets|
 
