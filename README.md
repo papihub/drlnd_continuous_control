@@ -21,4 +21,4 @@ open a jupyter notebook.
 
 Run the notebook continuous_control.ipynb to train and test the agent. The notebook has instructions to load a saved model and to save a trained model.
 
-Refer to the Readme.md for the approach used by the agent, training and evaluation.
+Refer to the Report.md for the approach used by the agent, training and evaluation.
