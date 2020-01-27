@@ -102,6 +102,8 @@ The agent was trained for 200 episodes. During each training episode, in each st
 Here is an evaluation run:
 ![Evaluation of trained agent](https://github.com/papihub/drlnd_continuous_control/blob/master/trained_agent.gif)
 
+Actor network weights used in the above evaluation run are in [my_actor.200.pth](https://github.com/papihub/drlnd_continuous_control/blob/master/my_actor.200.pth)
+
 ## Future actions / steps
 In this implementation I sampled randomly from two replay buffer for training.
 
